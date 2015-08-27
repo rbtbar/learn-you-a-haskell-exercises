@@ -1,15 +1,23 @@
+ module Recursion where
 -- Raise x to the power y, using recursion
 -- For example, power 5 2 = 25
 power :: Int -> Int -> Int
-power x y = undefined
+power _ 0 = 1
+power x 1 = x
+power x n = x * power x (n - 1)
 
 -- create a list of length n of the fibbonaci sequence in reverse order
 -- examples: fib 0 = [0]
 -- 	     fib 1 = [1, 0]
---	     fib 10 = [55,34,21,13,8,5,3,2,1,1,0]	
+--	     fib 10 = [55,34,21,13,8,5,3,2,1,1,0]
 -- try to use a where clause
 fib :: (Num a, Eq a) => a -> [a]
-fib x = undefined
+fib n
+  | n == 0 = [0]
+  | otherwise = fibbo n : fib (n - 1)
+    where fibbo 0 = 0
+          fibbo 1 = 1
+          fibbo u = fibbo (u-1) + fibbo (u-2)
 
 -- This is not recursive, but have a go anyway.
 -- Create a function which takes two parameters, a number and a step
@@ -18,7 +26,9 @@ fib x = undefined
 --			    stepReverseSign -3 1 = 4
 --			    stepReverseSign 1 2 = -3
 stepReverseSign :: (Fractional a, Ord a) => a -> a -> a
-stepReverseSign a = undefined
+stepReverseSign a step
+    | a < 0 = (-a) + step
+    | otherwise = -(a + step)
 
 {- Lets calculate pi.
  - The Leibniz formula for pi (http://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80)
@@ -36,7 +46,7 @@ stepReverseSign a = undefined
  - snd is the number of recursive steps taken to calculate it, after all this chapter is about recursion!
  - Example: piCalc 0.001 = (3.1420924036835256,2000)
 
- - The piCalc' function is defined as 
+ - The piCalc' function is defined as
  - piCalc' :: (Ord a, Fractional a, Integral b) => a -> a -> a -> b -> (a, b)
  - Lots of parameters!
  - The first parameter is the current denominator from the Leibniz formula
@@ -47,13 +57,31 @@ stepReverseSign a = undefined
  -
  - Feel free to change the parameter order, what parameters you need etc in order to get this to work for you,
  - But, of course the output of piCalc should remain as (pi, count)
- - 
+ -
  - You may find the stepReverseSign function handy
  -}
 
 piCalc :: (Fractional a, Integral b, Ord a) => a -> (a, b)
-piCalc a = undefined
+piCalc tolerance = piCalc' 1 0.0 tolerance 0
 
 piCalc' :: (Ord a, Fractional a, Integral b) => a -> a -> a -> b -> (a, b)
-piCalc' w x y z = undefined
+piCalc' currDenom currPi tolerance count =
+  let nextPi = currPi + (4 / currDenom) in
+    if abs(nextPi - currPi) < tolerance
+      then (nextPi, count)
+      else piCalc' (stepReverseSign currDenom 2) nextPi tolerance (succ count)
 
+
+{-
+- Alternative solution
+-}
+
+piCalc2 :: (Floating a, Ord a, Integral b) => a -> (a, b)
+piCalc2 tolerance =
+  let piStep k = 4 * ((-1) ** k) * recip ((2 * k) + 1)
+      piCalc2' piK nextK count =
+          if abs(piNextK - piK) < tolerance
+            then (piNextK, count)
+            else piCalc2' piNextK (nextK + 1) (succ count)
+          where piNextK = piK + piStep nextK
+  in piCalc2' (piStep 0) 1 1
